@@ -15,8 +15,10 @@ import (
 )
 
 func initDatabase(client *mongo.Client) {
-	profileCollection := config.GetCollection(client, "bankdb", "profiles")
-	controllers.CustomerService = services.InitCustomerService(profileCollection, context.Background())
+	profileCollection := config.GetCollection(client, "Ecommerce", "CustomerProfile")
+	tokenCollection := config.GetCollection(client, "Ecommerce", "Tokens")
+	controllers.CustomerService = services.InitCustomerService(profileCollection, tokenCollection, context.Background())
+
 }
 
 func main() {

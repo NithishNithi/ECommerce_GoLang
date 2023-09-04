@@ -23,6 +23,8 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CustomerServiceClient interface {
 	CreateCustomer(ctx context.Context, in *CustomerDetails, opts ...grpc.CallOption) (*CustomerResponse, error)
+	CustomerLogin(ctx context.Context, in *CustomerLoginRequest, opts ...grpc.CallOption) (*CustomerResponse, error)
+	CreateTokens(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type customerServiceClient struct {
@@ -42,11 +44,31 @@ func (c *customerServiceClient) CreateCustomer(ctx context.Context, in *Customer
 	return out, nil
 }
 
+func (c *customerServiceClient) CustomerLogin(ctx context.Context, in *CustomerLoginRequest, opts ...grpc.CallOption) (*CustomerResponse, error) {
+	out := new(CustomerResponse)
+	err := c.cc.Invoke(ctx, "/customer.CustomerService/CustomerLogin", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *customerServiceClient) CreateTokens(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/customer.CustomerService/CreateTokens", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CustomerServiceServer is the server API for CustomerService service.
 // All implementations must embed UnimplementedCustomerServiceServer
 // for forward compatibility
 type CustomerServiceServer interface {
 	CreateCustomer(context.Context, *CustomerDetails) (*CustomerResponse, error)
+	CustomerLogin(context.Context, *CustomerLoginRequest) (*CustomerResponse, error)
+	CreateTokens(context.Context, *Token) (*Empty, error)
 	mustEmbedUnimplementedCustomerServiceServer()
 }
 
@@ -56,6 +78,12 @@ type UnimplementedCustomerServiceServer struct {
 
 func (UnimplementedCustomerServiceServer) CreateCustomer(context.Context, *CustomerDetails) (*CustomerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCustomer not implemented")
+}
+func (UnimplementedCustomerServiceServer) CustomerLogin(context.Context, *CustomerLoginRequest) (*CustomerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CustomerLogin not implemented")
+}
+func (UnimplementedCustomerServiceServer) CreateTokens(context.Context, *Token) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTokens not implemented")
 }
 func (UnimplementedCustomerServiceServer) mustEmbedUnimplementedCustomerServiceServer() {}
 
@@ -88,6 +116,42 @@ func _CustomerService_CreateCustomer_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CustomerService_CustomerLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CustomerLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CustomerServiceServer).CustomerLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/customer.CustomerService/CustomerLogin",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CustomerServiceServer).CustomerLogin(ctx, req.(*CustomerLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CustomerService_CreateTokens_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Token)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CustomerServiceServer).CreateTokens(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/customer.CustomerService/CreateTokens",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CustomerServiceServer).CreateTokens(ctx, req.(*Token))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CustomerService_ServiceDesc is the grpc.ServiceDesc for CustomerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +162,14 @@ var CustomerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateCustomer",
 			Handler:    _CustomerService_CreateCustomer_Handler,
+		},
+		{
+			MethodName: "CustomerLogin",
+			Handler:    _CustomerService_CustomerLogin_Handler,
+		},
+		{
+			MethodName: "CreateTokens",
+			Handler:    _CustomerService_CreateTokens_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

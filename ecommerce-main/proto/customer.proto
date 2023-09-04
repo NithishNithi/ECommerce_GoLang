@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option go_package = "github.com/kishorens18/ecommerce";
+
+package customer;
+
+service CustomerService {
+    rpc CreateCustomer (CustomerDetails) returns (CustomerResponse);
+    rpc CustomerLogin (CustomerLoginRequest) returns (CustomerResponse);
+    rpc CreateTokens(Token)returns(empty);
+}
+
+message CustomerDetails {
+    string CustomerId = 1;
+    string Firstname = 2;
+    string Lastname = 3;
+    string HashesAndSaltedPassword = 4;
+    bool EmailVerified = 5;
+    // Address Address=6;
+    // ShippingAddress ShippingAddress=7;
+}
+
+// message Address {
+//     string Country =1;
+// 	string Street1 =2;
+// 	string Street2 =3;
+// 	string City    =4;
+// 	string State  =5;
+// 	string Zip     =6;
+// }
+// message ShippingAddress {
+//     string Street1 =1;
+// 	string Street2 =2;
+// 	string City =3;
+// 	string State    =4;
+// }
+
+message CustomerLoginRequest {
+    string Email = 1;
+    string HashesAndSaltedPassword = 2;
+}
+
+message  CustomerResponse {
+    string Customer_ID = 1;
+}
+
+message empty {
+}
+message Token {
+    string Email = 1;
+    string Token = 2;
+}
