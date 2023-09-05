@@ -13,6 +13,7 @@ import (
 	"github.com/kishorens18/ecommerce/services"
 	"google.golang.org/grpc"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -150,10 +151,18 @@ func isValidUser(user User) bool {
 	// Simulated user validation (replace with your actual validation logic)
 	fmt.Println(user.Email)
 	fmt.Println(user.Password)
-	check:=services.EmailVefication(user.Email,user.Password)
+		collection := mongoclient.Database("Ecommerce").Collection("CustomerProfile")
+		filter := bson.M{"email": user.Email, "password": user.Password}
+		var result bson.M
+		err := collection.FindOne(context.TODO(), filter).Decode(&result)
 	
-	return user.Email == "jp@gmail.com" && user.Password == "123"
-}
+		if err != nil {
+			return false
+		}
+		return true
+	}
+	
+
 
 func createToken(email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

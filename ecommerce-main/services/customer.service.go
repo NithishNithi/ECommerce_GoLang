@@ -77,7 +77,3 @@ func (p *CustomerService) CreateTokens(user *models.Token) (*ecommerce.Empty, er
 	return nil, nil
 }
 
-
-func(p *CustomerService) EmailVerification(email, password string) bool{
-	
-}
