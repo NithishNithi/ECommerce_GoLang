@@ -11,4 +11,5 @@ type ICustomer interface {
 	CreateTokens(token *models.Token) (*ecommerce.Empty, error)
 	UpdatePassword(Password *models.UpdatePassword) (*models.CustomerDBResponse, error)
 	UpdateEmail(email *models.UpdateEmail)(*models.CustomerDBResponse,error)
+	UpdateCustomer(cus *models.UpdateRequest) (*models.Customer, error) 
 }

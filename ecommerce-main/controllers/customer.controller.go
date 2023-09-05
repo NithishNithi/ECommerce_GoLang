@@ -3,10 +3,11 @@ package controllers
 import (
 	"context"
 
-
 	"github.com/gin-gonic/gin"
 	"github.com/kishorens18/ecommerce/interfaces"
 	"github.com/kishorens18/ecommerce/models"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pro "github.com/kishorens18/ecommerce/proto"
 )
@@ -100,9 +101,9 @@ func (s *RPCServer) UpdateEmail(ctx context.Context, req *pro.EmailDetails) (*pr
 	var mail models.UpdateEmail
 	if req != nil {
 		mail = models.UpdateEmail{
-			CustomerId:       req.CustomerId,
-			OldEmail: req.OldEmail,
-			NewEmail: req.NewEmail,
+			CustomerId: req.CustomerId,
+			OldEmail:   req.OldEmail,
+			NewEmail:   req.NewEmail,
 		}
 	}
 
@@ -115,4 +116,38 @@ func (s *RPCServer) UpdateEmail(ctx context.Context, req *pro.EmailDetails) (*pr
 		}
 		return responseCustomer, nil
 	}
+}
+
+func (s *RPCServer) UpdateCustomer(ctx context.Context, req *pro.UpdateDetails) (*pro.CustomerResponse, error) {
+	// Check if the request is nil
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "Request is nil")
+	}
+
+	// Validate the request fields
+	if req.CustomerId == "" || req.Field == "" || req.Value == "" {
+		return nil, status.Error(codes.InvalidArgument, "Missing required fields")
+	}
+
+	var cus models.UpdateRequest
+	if req != nil {
+		cus = models.UpdateRequest{
+			CustomerId: req.CustomerId,
+			Field:   req.Field,
+			Value:   req.Value,
+		}
+	}
+
+	// Call the UpdateCustomer service function
+	updatedUser, err := CustomerService.UpdateCustomer(&cus)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Failed to update user")
+	}
+
+	// Create and return the response
+	responseCustomer := &pro.CustomerResponse{
+		Customer_ID: updatedUser.CustomerId,
+	}
+
+	return responseCustomer, nil
 }

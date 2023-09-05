@@ -118,8 +118,6 @@ func (p *CustomerService) CreateTokens(user *models.Token) (*ecommerce.Empty, er
 	return nil, nil
 }
 
-
-
 func (p *CustomerService) UpdateEmail(user *models.UpdateEmail) (*models.CustomerDBResponse, error) {
 	if user.OldEmail == user.NewEmail {
 		return nil, nil
@@ -132,11 +130,10 @@ func (p *CustomerService) UpdateEmail(user *models.UpdateEmail) (*models.Custome
 		return nil, err
 	}
 
-	if(customer.Email != user.OldEmail){
-		return nil,nil
+	if customer.Email != user.OldEmail {
+		return nil, nil
 	}
 
-	
 	update := bson.M{"$set": bson.M{"email": user.NewEmail}}
 
 	_, err = p.ProfileCollection.UpdateOne(context.Background(), filter, update)
