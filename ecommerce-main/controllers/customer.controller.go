@@ -6,7 +6,7 @@ import (
 
 	"github.com/kishorens18/ecommerce/interfaces"
 	"github.com/kishorens18/ecommerce/models"
-	ecommerce "github.com/kishorens18/ecommerce/proto"
+	
 
 	pro "github.com/kishorens18/ecommerce/proto"
 )
@@ -20,32 +20,38 @@ var (
 )
 
 func (s *RPCServer) CreateCustomer(ctx context.Context, req *pro.CustomerDetails) (*pro.CustomerResponse, error) {
-	// var r *ecommerce.CustomerDetails
-	// var address models.Address
-	// if r != nil {
-	// 	address = models.Address{
-	// 		Country: r.Country,
-	// 		Street1: r.Street1,
-	// 		Street2: r.Street2,
-	// 		City:    r.City,
-	// 		State:   r.State,
-	// 		Zip:     r.Zip,
-	// 	}
-	// }
-	// addresses := []models.Address{address}
-	// var req1 *ecommerce.ShippingAddress
-	// var shippingAddress models.ShippingAddress
-	// if req1 != nil {
-	// 	shippingAddress = models.ShippingAddress{
-	// 		Street1: req1.Street1,
-	// 		Street2: req1.Street2,
-	// 		City:    req1.City,
-	// 		State:   req1.State,
-	// 	}
-	// }
-	// shippingAddresses := []models.ShippingAddress{shippingAddress}
+	var address models.Address
+	if req != nil {
+		address = models.Address{
+			Country: req.Address[0].Country,
+			Street1: req.Address[0].Street1,
+			Street2: req.Address[0].Street2,
+			City:    req.Address[0].City,
+			State:   req.Address[0].State,
+			Zip:     req.Address[0].Zip,
+		}
+	}
+
+	var shippingAddress models.ShippingAddress
+	if req != nil {
+		shippingAddress = models.ShippingAddress{
+			Street1: req.ShippingAddress[0].Street1,
+			Street2: req.ShippingAddress[0].Street2,
+			City:    req.ShippingAddress[0].City,
+			State:   req.ShippingAddress[0].State,
+		}
+	}
+
 	fmt.Println(req.Firstname)
-	dbCustomer := models.Customer{CustomerId: req.CustomerId, Firstname: req.Firstname, Lastname: req.Lastname, HashesAndSaltedPassword: req.HashesAndSaltedPassword, EmailVerified: req.EmailVerified}
+	dbCustomer := models.Customer{
+		CustomerId:              req.CustomerId,
+		Firstname:               req.Firstname,
+		Lastname:                req.Lastname,
+		HashesAndSaltedPassword: req.HashesAndSaltedPassword,
+		Email:           req.Email,
+		Address:                 []models.Address{address},
+		ShippingAddress:         []models.ShippingAddress{shippingAddress},
+	}
 	result, err := CustomerService.CreateCustomer(&dbCustomer)
 	if err != nil {
 		return nil, err
@@ -76,7 +82,7 @@ func (s *RPCServer) CustomerLogin(ctx context.Context, req *pro.CustomerLoginReq
 	return nil, fmt.Errorf("authentication failed")
 }
 
-func (s *RPCServer) CreateTokens(ctx context.Context, req *pro.Token) (*ecommerce.Empty, error) {
+func (s *RPCServer) CreateTokens(ctx context.Context, req *pro.Token) (*pro.Empty, error) {
 
 	dbCustomer := models.Token{Email: req.Email, Token: req.Token}
 	_, err := CustomerService.CreateTokens(&dbCustomer)

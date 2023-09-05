@@ -10,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	pb "github.com/kishorens18/ecommerce/proto"
+	"github.com/kishorens18/ecommerce/services"
 	"google.golang.org/grpc"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -149,6 +150,8 @@ func isValidUser(user User) bool {
 	// Simulated user validation (replace with your actual validation logic)
 	fmt.Println(user.Email)
 	fmt.Println(user.Password)
+	check:=services.EmailVerification(user.Email,user.Password)
+	
 	return user.Email == "jp@gmail.com" && user.Password == "123"
 }
 
