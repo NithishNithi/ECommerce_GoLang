@@ -23,7 +23,6 @@ func initDatabase(client *mongo.Client) {
 }
 
 func main() {
-	fmt.Println("hello")
 	mongoclient, err := config.ConnectDataBase()
 	defer mongoclient.Disconnect(context.TODO())
 	if err != nil {

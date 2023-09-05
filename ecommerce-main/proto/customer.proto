@@ -8,6 +8,7 @@ service CustomerService {
     rpc CreateCustomer (CustomerDetails) returns (CustomerResponse);
     rpc CreateTokens(Token)returns(empty);
     rpc UpdatePassword(PasswordDetails) returns(CustomerResponse);
+    rpc UpdateEmail (EmailDetails) returns (CustomerResponse);
 }
 
 message CustomerDetails {
@@ -46,6 +47,7 @@ message  CustomerResponse {
 
 message empty {
 }
+
 message Token {
     string Email = 1;
     string Token = 2;
@@ -55,4 +57,9 @@ message PasswordDetails {
     string Email =1;
     string OldPassword =2;
     string NewPassword =3;
+}
+message EmailDetails {
+    string CustomerId = 1;
+    string OldEmail = 2;
+    string NewEmail = 3;
 }

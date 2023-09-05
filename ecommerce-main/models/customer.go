@@ -1,11 +1,11 @@
 package models
 
 type Customer struct {
-	CustomerId              string `json:"customerid" bson:"customerid"`
-	Firstname               string `json:"firstname" bson:"firstname"`
-	Lastname                string `json:"lastname" bson:"lastname"`
-	HashesAndSaltedPassword string `json:"hashesandsaltedpassword" bson:"hashedandsaltedpassword"`
-	Email           string   `json:"email" bson:"email"`
+	CustomerId              string            `json:"customerid" bson:"customerid"`
+	Firstname               string            `json:"firstname" bson:"firstname"`
+	Lastname                string            `json:"lastname" bson:"lastname"`
+	HashesAndSaltedPassword string            `json:"hashesandsaltedpassword" bson:"hashedandsaltedpassword"`
+	Email                   string            `json:"email" bson:"email"`
 	Address                 []Address         `json:"address" bson:"address"`
 	ShippingAddress         []ShippingAddress `json:"shippingaddress" bson:"shippingaddress"`
 }
@@ -32,13 +32,17 @@ type CustomerDBResponse struct {
 
 type Token struct {
 	CustomerId string `json:"customerid" bson:"customerid"`
-	Email string `json:"email" bson:"email"`
-	Token string `json:"token" bson:"token"`
+	Email      string `json:"email" bson:"email"`
+	Token      string `json:"token" bson:"token"`
 }
 
 type UpdatePassword struct {
-	Email string `json:"email" bson:"email"`
-	OldPassword string	`json:"oldpassword" bson:"oldpassword"`
-	NewPassword string	`json:"newpassword" bson:"newpassword"`
-
+	Email       string `json:"email" bson:"email"`
+	OldPassword string `json:"oldpassword" bson:"oldpassword"`
+	NewPassword string `json:"newpassword" bson:"newpassword"`
+}
+type UpdateEmail struct {
+	CustomerId string `json:"customerid" bson:"customerid"`
+	OldEmail   string `json:"oldemail" bson:"oldemail"`
+	NewEmail   string `json:"newemail" bson:"newemail"`
 }

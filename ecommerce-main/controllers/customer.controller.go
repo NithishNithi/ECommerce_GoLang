@@ -95,3 +95,24 @@ func (s *RPCServer) UpdatePassword(ctx context.Context, req *pro.PasswordDetails
 		return responseCustomer, nil
 	}
 }
+
+func (s *RPCServer) UpdateEmail(ctx context.Context, req *pro.EmailDetails) (*pro.CustomerResponse, error) {
+	var mail models.UpdateEmail
+	if req != nil {
+		mail = models.UpdateEmail{
+			CustomerId:       req.CustomerId,
+			OldEmail: req.OldEmail,
+			NewEmail: req.NewEmail,
+		}
+	}
+
+	result, err := CustomerService.UpdateEmail(&mail)
+	if err != nil {
+		return nil, err
+	} else {
+		responseCustomer := &pro.CustomerResponse{
+			Customer_ID: result.Customer_id,
+		}
+		return responseCustomer, nil
+	}
+}

@@ -117,3 +117,35 @@ func (p *CustomerService) CreateTokens(user *models.Token) (*ecommerce.Empty, er
 	}
 	return nil, nil
 }
+
+
+
+func (p *CustomerService) UpdateEmail(user *models.UpdateEmail) (*models.CustomerDBResponse, error) {
+	if user.OldEmail == user.NewEmail {
+		return nil, nil
+	}
+
+	filter := bson.M{"customerid": user.CustomerId}
+	var customer models.Customer
+	err := p.ProfileCollection.FindOne(p.ctx, filter).Decode(&customer)
+	if err != nil {
+		return nil, err
+	}
+
+	if(customer.Email != user.OldEmail){
+		return nil,nil
+	}
+
+	
+	update := bson.M{"$set": bson.M{"email": user.NewEmail}}
+
+	_, err = p.ProfileCollection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	response := models.CustomerDBResponse{
+		Customer_id: customer.CustomerId,
+	}
+	return &response, nil
+}
