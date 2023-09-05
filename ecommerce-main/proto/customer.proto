@@ -6,7 +6,6 @@ package customer;
 
 service CustomerService {
     rpc CreateCustomer (CustomerDetails) returns (CustomerResponse);
-    rpc CustomerLogin (CustomerLoginRequest) returns (CustomerResponse);
     rpc CreateTokens(Token)returns(empty);
     rpc UpdatePassword(PasswordDetails) returns(CustomerResponse);
 }

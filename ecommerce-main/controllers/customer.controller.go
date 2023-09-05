@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 
+
+	"github.com/gin-gonic/gin"
 	"github.com/kishorens18/ecommerce/interfaces"
 	"github.com/kishorens18/ecommerce/models"
 
@@ -15,6 +16,7 @@ type RPCServer struct {
 }
 
 var (
+	ctx             gin.Context
 	CustomerService interfaces.ICustomer
 )
 
@@ -41,7 +43,6 @@ func (s *RPCServer) CreateCustomer(ctx context.Context, req *pro.CustomerDetails
 		}
 	}
 
-	fmt.Println(req.Firstname)
 	dbCustomer := models.Customer{
 		CustomerId:              req.CustomerId,
 		Firstname:               req.Firstname,
@@ -62,25 +63,6 @@ func (s *RPCServer) CreateCustomer(ctx context.Context, req *pro.CustomerDetails
 	}
 }
 
-func (s *RPCServer) CustomerLogin(ctx context.Context, req *pro.CustomerLoginRequest) (*pro.CustomerResponse, error) {
-	// Validate the login credentials (email and password)
-	// Perform the login logic here, checking if the email and password match
-
-	// For simplicity, let's assume there's a predefined customer ID for successful login
-	// In a real-world scenario, you would typically hash and compare passwords securely
-	// and handle authentication tokens or sessions.
-	if req.Email == "jp@gmail.com" && req.HashesAndSaltedPassword == "123" {
-		// Successful login
-		responseCustomer := &pro.CustomerResponse{
-			Customer_ID: "12345", // Replace with the actual customer ID
-		}
-		return responseCustomer, nil
-	}
-
-	// Authentication failed
-	return nil, fmt.Errorf("authentication failed")
-}
-
 func (s *RPCServer) CreateTokens(ctx context.Context, req *pro.Token) (*pro.Empty, error) {
 
 	dbCustomer := models.Token{Email: req.Email, Token: req.Token, CustomerId: req.Customerid}
@@ -88,9 +70,7 @@ func (s *RPCServer) CreateTokens(ctx context.Context, req *pro.Token) (*pro.Empt
 	if err != nil {
 		return nil, err
 	} else {
-		// responseCustomer := &pro.TokenResponse{
-		// 	Token:result.Email ,
-		// }
+
 		return nil, nil
 	}
 }
