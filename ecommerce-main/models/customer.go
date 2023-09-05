@@ -31,6 +31,7 @@ type CustomerDBResponse struct {
 }
 
 type Token struct {
+	CustomerId string `json:"customerid" bson:"customerid"`
 	Email string `json:"email" bson:"email"`
 	Token string `json:"token" bson:"token"`
 }

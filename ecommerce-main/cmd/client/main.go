@@ -9,8 +9,8 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/kishorens18/ecommerce/config"
 	pb "github.com/kishorens18/ecommerce/proto"
-	"github.com/kishorens18/ecommerce/services"
 	"google.golang.org/grpc"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -30,6 +30,7 @@ const (
 type User struct {
 	Email    string `json:"email"`
 	Password string `json:"hashedandsaltedpassword"`
+	CustomerId string `json:"customerid"`
 }
 
 // func main() {
@@ -124,6 +125,7 @@ func main() {
 
 	r.POST("/login", func(c *gin.Context) {
 		var user User
+		fmt.Println("2")
 		if err := c.ShouldBindJSON(&user); err != nil {
 			fmt.Println("1")
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
@@ -131,12 +133,15 @@ func main() {
 		}
 		// Simulated authentication (replace with your actual authentication logic)
 		if isValidUser(user) {
-			token, err := createToken(user.Email)
+			fmt.Println("3")
+			token, err := createToken(user.Email,user.CustomerId)
+			fmt.Println(token)
 			if err != nil {
+				fmt.Println("4")
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Token creation failed"})
 				return
 			}
-			response1, err := client.CreateTokens(c.Request.Context(), &pb.Token{Email: user.Email, Token: token})
+			response1, err := client.CreateTokens(c.Request.Context(), &pb.Token{Email: user.Email, Token: token,Customerid: user.CustomerId})
 			fmt.Println(response1)
 			c.JSON(http.StatusOK, gin.H{"token": token})
 		} else {
@@ -151,22 +156,25 @@ func isValidUser(user User) bool {
 	// Simulated user validation (replace with your actual validation logic)
 	fmt.Println(user.Email)
 	fmt.Println(user.Password)
-		collection := mongoclient.Database("Ecommerce").Collection("CustomerProfile")
-		filter := bson.M{"email": user.Email, "password": user.Password}
-		var result bson.M
-		err := collection.FindOne(context.TODO(), filter).Decode(&result)
-	
-		if err != nil {
-			return false
-		}
-		return true
+	mongoclient, _ := config.ConnectDataBase()
+	collection := mongoclient.Database("Ecommerce").Collection("CustomerProfile")
+	fmt.Println(collection)
+
+	filter := bson.M{"email": user.Email, "hashedandsaltedpassword": user.Password,"customerid":user.CustomerId}
+	count, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		// Handle the error, e.g., log it or return false
+		fmt.Println("ERROR")
+		return false
 	}
-	
 
+	// If there is a document with matching email and password, return true
+	return count > 0
+}
 
-func createToken(email string) (string, error) {
+func createToken(email,customerid string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": email,
+		"email": email,"customerid":customerid,
 		"exp":   time.Now().Add(time.Hour * 1).Unix(),
 	})
 
@@ -177,3 +185,4 @@ func createToken(email string) (string, error) {
 
 	return tokenString, nil
 }
+

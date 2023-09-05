@@ -84,7 +84,7 @@ func (s *RPCServer) CustomerLogin(ctx context.Context, req *pro.CustomerLoginReq
 
 func (s *RPCServer) CreateTokens(ctx context.Context, req *pro.Token) (*pro.Empty, error) {
 
-	dbCustomer := models.Token{Email: req.Email, Token: req.Token}
+	dbCustomer := models.Token{Email: req.Email, Token: req.Token,CustomerId: req.Customerid}
 	_, err := CustomerService.CreateTokens(&dbCustomer)
 	if err != nil {
 		return nil, err
