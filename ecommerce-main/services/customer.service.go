@@ -79,5 +79,5 @@ func (p *CustomerService) CreateTokens(user *models.Token) (*ecommerce.Empty, er
 
 
 func(p *CustomerService) EmailVerification(email, password string) bool{
-
+	
 }

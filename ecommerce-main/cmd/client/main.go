@@ -150,7 +150,7 @@ func isValidUser(user User) bool {
 	// Simulated user validation (replace with your actual validation logic)
 	fmt.Println(user.Email)
 	fmt.Println(user.Password)
-	check:=services.EmailVerification(user.Email,user.Password)
+	check:=services.EmailVefication(user.Email,user.Password)
 	
 	return user.Email == "jp@gmail.com" && user.Password == "123"
 }
