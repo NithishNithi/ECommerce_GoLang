@@ -10,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/kishorens18/ecommerce/config"
+	"github.com/kishorens18/ecommerce/models"
 	pb "github.com/kishorens18/ecommerce/proto"
 	"google.golang.org/grpc"
 
@@ -32,6 +33,7 @@ type User struct {
 	Password string `json:"hashedandsaltedpassword"`
 	CustomerId string `json:"customerid"`
 }
+
 
 // func main() {
 // 	r := gin.Default()
@@ -147,6 +149,23 @@ func main() {
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		}
+	})
+	r.POST("/resetpassword", func(c *gin.Context) {
+		var user models.UpdatePassword
+		fmt.Println("2")
+		if err := c.ShouldBindJSON(&user); err != nil {
+			fmt.Println("1")
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+		
+		response, err := client.UpdatePassword(c.Request.Context(), &pb.PasswordDetails{Email: user.Email,OldPassword: user.OldPassword,NewPassword: user.NewPassword})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"value": response})
 	})
 
 	r.Run(":8080")

@@ -25,6 +25,7 @@ type CustomerServiceClient interface {
 	CreateCustomer(ctx context.Context, in *CustomerDetails, opts ...grpc.CallOption) (*CustomerResponse, error)
 	CustomerLogin(ctx context.Context, in *CustomerLoginRequest, opts ...grpc.CallOption) (*CustomerResponse, error)
 	CreateTokens(ctx context.Context, in *Token, opts ...grpc.CallOption) (*Empty, error)
+	UpdatePassword(ctx context.Context, in *PasswordDetails, opts ...grpc.CallOption) (*CustomerResponse, error)
 }
 
 type customerServiceClient struct {
@@ -62,6 +63,15 @@ func (c *customerServiceClient) CreateTokens(ctx context.Context, in *Token, opt
 	return out, nil
 }
 
+func (c *customerServiceClient) UpdatePassword(ctx context.Context, in *PasswordDetails, opts ...grpc.CallOption) (*CustomerResponse, error) {
+	out := new(CustomerResponse)
+	err := c.cc.Invoke(ctx, "/customer.CustomerService/UpdatePassword", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CustomerServiceServer is the server API for CustomerService service.
 // All implementations must embed UnimplementedCustomerServiceServer
 // for forward compatibility
@@ -69,6 +79,7 @@ type CustomerServiceServer interface {
 	CreateCustomer(context.Context, *CustomerDetails) (*CustomerResponse, error)
 	CustomerLogin(context.Context, *CustomerLoginRequest) (*CustomerResponse, error)
 	CreateTokens(context.Context, *Token) (*Empty, error)
+	UpdatePassword(context.Context, *PasswordDetails) (*CustomerResponse, error)
 	mustEmbedUnimplementedCustomerServiceServer()
 }
 
@@ -84,6 +95,9 @@ func (UnimplementedCustomerServiceServer) CustomerLogin(context.Context, *Custom
 }
 func (UnimplementedCustomerServiceServer) CreateTokens(context.Context, *Token) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTokens not implemented")
+}
+func (UnimplementedCustomerServiceServer) UpdatePassword(context.Context, *PasswordDetails) (*CustomerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePassword not implemented")
 }
 func (UnimplementedCustomerServiceServer) mustEmbedUnimplementedCustomerServiceServer() {}
 
@@ -152,6 +166,24 @@ func _CustomerService_CreateTokens_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CustomerService_UpdatePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PasswordDetails)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CustomerServiceServer).UpdatePassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/customer.CustomerService/UpdatePassword",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CustomerServiceServer).UpdatePassword(ctx, req.(*PasswordDetails))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CustomerService_ServiceDesc is the grpc.ServiceDesc for CustomerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -170,6 +202,10 @@ var CustomerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTokens",
 			Handler:    _CustomerService_CreateTokens_Handler,
+		},
+		{
+			MethodName: "UpdatePassword",
+			Handler:    _CustomerService_UpdatePassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

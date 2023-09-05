@@ -6,7 +6,6 @@ import (
 
 	"github.com/kishorens18/ecommerce/interfaces"
 	"github.com/kishorens18/ecommerce/models"
-	
 
 	pro "github.com/kishorens18/ecommerce/proto"
 )
@@ -48,7 +47,7 @@ func (s *RPCServer) CreateCustomer(ctx context.Context, req *pro.CustomerDetails
 		Firstname:               req.Firstname,
 		Lastname:                req.Lastname,
 		HashesAndSaltedPassword: req.HashesAndSaltedPassword,
-		Email:           req.Email,
+		Email:                   req.Email,
 		Address:                 []models.Address{address},
 		ShippingAddress:         []models.ShippingAddress{shippingAddress},
 	}
@@ -84,7 +83,7 @@ func (s *RPCServer) CustomerLogin(ctx context.Context, req *pro.CustomerLoginReq
 
 func (s *RPCServer) CreateTokens(ctx context.Context, req *pro.Token) (*pro.Empty, error) {
 
-	dbCustomer := models.Token{Email: req.Email, Token: req.Token,CustomerId: req.Customerid}
+	dbCustomer := models.Token{Email: req.Email, Token: req.Token, CustomerId: req.Customerid}
 	_, err := CustomerService.CreateTokens(&dbCustomer)
 	if err != nil {
 		return nil, err
@@ -93,5 +92,26 @@ func (s *RPCServer) CreateTokens(ctx context.Context, req *pro.Token) (*pro.Empt
 		// 	Token:result.Email ,
 		// }
 		return nil, nil
+	}
+}
+
+func (s *RPCServer) UpdatePassword(ctx context.Context, req *pro.PasswordDetails) (*pro.CustomerResponse, error) {
+	var pass models.UpdatePassword
+	if req != nil {
+		pass = models.UpdatePassword{
+			Email:       req.Email,
+			OldPassword: req.OldPassword,
+			NewPassword: req.NewPassword,
+		}
+	}
+
+	result, err := CustomerService.UpdatePassword(&pass)
+	if err != nil {
+		return nil, err
+	} else {
+		responseCustomer := &pro.CustomerResponse{
+			Customer_ID: result.Customer_id,
+		}
+		return responseCustomer, nil
 	}
 }

@@ -35,3 +35,10 @@ type Token struct {
 	Email string `json:"email" bson:"email"`
 	Token string `json:"token" bson:"token"`
 }
+
+type UpdatePassword struct {
+	Email string `json:"email" bson:"email"`
+	OldPassword string	`json:"oldpassword" bson:"oldpassword"`
+	NewPassword string	`json:"newpassword" bson:"newpassword"`
+
+}
