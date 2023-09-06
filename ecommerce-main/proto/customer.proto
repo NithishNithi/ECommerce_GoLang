@@ -8,7 +8,6 @@ service CustomerService {
     rpc CreateCustomer (CustomerDetails) returns (CustomerResponse);
     rpc CreateTokens(Token)returns(empty);
     rpc UpdatePassword(PasswordDetails) returns(CustomerResponse);
-    rpc UpdateEmail (EmailDetails) returns (CustomerResponse);
     rpc UpdateCustomer(UpdateDetails)returns(CustomerResponse);
     rpc DeleteCustomer(DeleteDetails) returns (empty) ;
 }
@@ -60,11 +59,7 @@ message PasswordDetails {
     string OldPassword =2;
     string NewPassword =3;
 }
-message EmailDetails {
-    string CustomerId = 1;
-    string OldEmail = 2;
-    string NewEmail = 3;
-}
+
 
 message UpdateDetails {
     string CustomerId =1;
