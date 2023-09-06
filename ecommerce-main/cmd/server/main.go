@@ -13,6 +13,8 @@ import (
 	pro "github.com/kishorens18/ecommerce/proto"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+    "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func initDatabase(client *mongo.Client) {
@@ -29,15 +31,17 @@ func main() {
 		panic(err)
 	}
 	initDatabase(mongoclient)
+	
 	lis, err := net.Listen("tcp", constants.Port)
 	if err != nil {
 		fmt.Printf("Failed to listen: %v", err)
 		return
 	}
 	s := grpc.NewServer()
+	healthServer := health.NewServer()
+    grpc_health_v1.RegisterHealthServer(s, healthServer)
 	pro.RegisterCustomerServiceServer(s, &controllers.RPCServer{})
 	fmt.Println("Server listening on", constants.Port)
-	fmt.Println("1")
 	if err := s.Serve(lis); err != nil {
 		fmt.Printf("Failed to serve: %v", err)
 	}

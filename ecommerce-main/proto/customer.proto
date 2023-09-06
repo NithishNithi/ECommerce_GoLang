@@ -10,6 +10,7 @@ service CustomerService {
     rpc UpdatePassword(PasswordDetails) returns(CustomerResponse);
     rpc UpdateCustomer(UpdateDetails)returns(CustomerResponse);
     rpc DeleteCustomer(DeleteDetails) returns (empty) ;
+    rpc GetByCustomerId(GetbyId) returns (CustomerDetails);
 }
 
 message CustomerDetails {
@@ -72,3 +73,8 @@ message UpdateDetails {
 message DeleteDetails {
     string CustomerID =1;
 }
+
+message GetbyId {
+    string token =1;
+}
+

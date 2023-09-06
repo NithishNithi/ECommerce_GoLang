@@ -12,5 +12,6 @@ type ICustomer interface {
 	UpdatePassword(Password *models.UpdatePassword) (*models.CustomerDBResponse, error)
 	UpdateCustomer(cus *models.UpdateRequest) (*models.CustomerDBResponse, error)
 	DeleteCustomer(cus *models.DeleteRequest)
+	GetByCustomerId(res string)(*models.Customer,error)
  
 }

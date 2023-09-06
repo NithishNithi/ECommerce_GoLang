@@ -10,6 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/kishorens18/ecommerce/config"
+	"github.com/kishorens18/ecommerce/constants"
 	"github.com/kishorens18/ecommerce/models"
 	pb "github.com/kishorens18/ecommerce/proto"
 	"google.golang.org/grpc"
@@ -22,10 +23,6 @@ var (
 	mongoclient *mongo.Client
 	ctx         context.Context
 	server      *gin.Engine
-)
-
-const (
-	secretKey = "your-secret-key"
 )
 
 type User struct {
@@ -84,14 +81,12 @@ func main() {
 
 	r.POST("/updatecustomer", func(c *gin.Context) {
 		var user models.UpdateRequest
-		
-
 		if err := c.ShouldBindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		updatedUser, err := client.UpdateCustomer(c.Request.Context(),&pb.UpdateDetails{CustomerId: user.CustomerId,
-		Field: user.Field, OldValue: user.OldValue,NewValue: user.NewValue,})
+		updatedUser, err := client.UpdateCustomer(c.Request.Context(), &pb.UpdateDetails{CustomerId: user.CustomerId,
+			Field: user.Field, OldValue: user.OldValue, NewValue: user.NewValue})
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
@@ -114,6 +109,15 @@ func main() {
 
 	})
 
+	r.GET("/getbyid", func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
+		result, err := client.GetByCustomerId(c.Request.Context(), &pb.GetbyId{Token: token})
+		if err != nil {
+			fmt.Println("Error:", err.Error()) // Print the error message for debugging
+			c.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		}
+		c.JSON(http.StatusCreated, gin.H{"status": "success", "data": result})
+	})
 
 	r.POST("/resetpassword", func(c *gin.Context) {
 		var user models.UpdatePassword
@@ -121,7 +125,6 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 			return
 		}
-
 		response, err := client.UpdatePassword(c.Request.Context(), &pb.PasswordDetails{Email: user.Email, OldPassword: user.OldPassword, NewPassword: user.NewPassword})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -154,7 +157,7 @@ func createToken(email, customerid string) (string, error) {
 		"exp": time.Now().Add(time.Hour * 1).Unix(),
 	})
 
-	tokenString, err := token.SignedString([]byte(secretKey))
+	tokenString, err := token.SignedString([]byte(constants.SecretKey))
 	if err != nil {
 		return "", err
 	}

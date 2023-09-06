@@ -3,7 +3,10 @@ package controllers
 import (
 	"context"
 
+	"log"
+
 	"github.com/gin-gonic/gin"
+	"github.com/kishorens18/ecommerce/constants"
 	"github.com/kishorens18/ecommerce/interfaces"
 	"github.com/kishorens18/ecommerce/models"
 	"google.golang.org/grpc/codes"
@@ -97,8 +100,6 @@ func (s *RPCServer) UpdatePassword(ctx context.Context, req *pro.PasswordDetails
 	}
 }
 
-
-
 func (s *RPCServer) UpdateCustomer(ctx context.Context, req *pro.UpdateDetails) (*pro.CustomerResponse, error) {
 	// Check if the request is nil
 	if req == nil {
@@ -147,6 +148,59 @@ func (s *RPCServer) DeleteCustomer(ctx context.Context, req *pro.DeleteDetails) 
 
 	// Call the DeleteCustomer service function
 	CustomerService.DeleteCustomer(&cuss)
-
 	return &pro.Empty{}, nil
+}
+
+func (s *RPCServer) GetByCustomerId(ctx context.Context, req *pro.GetbyId) (*pro.CustomerDetails, error) {
+	t1 := req.Token
+	// Extract customer ID from the token
+	customerID, err := ExtractCustomerID(t1, constants.SecretKey)
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+	// Retrieve customer details from CustomerService
+	result, err := CustomerService.GetByCustomerId(customerID)
+	if err != nil {
+		// Handle the error (e.g., log it or return an error response)
+		return nil, err
+	}
+
+	// Create and populate the responseCustomer struct
+	responseCustomer := &pro.CustomerDetails{
+		CustomerId: result.CustomerId,
+		Firstname:  result.Firstname,
+		Lastname:   result.Lastname,
+		Email:      result.Email,
+	}
+
+	// Check if there are addresses and populate them
+	if len(result.Address) > 0 {
+		responseCustomer.Address = []*pro.Address{
+			{
+				Country: result.Address[0].Country,
+				Street1: result.Address[0].Street1,
+				Street2: result.Address[0].Street2,
+				City:    result.Address[0].City,
+				State:   result.Address[0].State,
+				Zip:     result.Address[0].Zip,
+			},
+			// Add more address entries if needed.
+		}
+	}
+
+	// Check if there are shipping addresses and populate them
+	if len(result.ShippingAddress) > 0 {
+		responseCustomer.ShippingAddress = []*pro.ShippingAddress{
+			{
+				Street1: result.ShippingAddress[0].Street1,
+				Street2: result.ShippingAddress[0].Street2,
+				City:    result.ShippingAddress[0].City,
+				State:   result.ShippingAddress[0].State,
+			},
+			// Add more shipping address entries if needed.
+		}
+	}
+
+	return responseCustomer, nil
 }

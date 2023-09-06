@@ -42,14 +42,16 @@ type UpdatePassword struct {
 	NewPassword string `json:"newpassword" bson:"newpassword"`
 }
 
-
 type UpdateRequest struct {
 	CustomerId string `json:"customerid"`
 	Field      string `json:"field"`
-	OldValue      string `json:"oldvalue"`
-	NewValue    string  `json:"newvalue"`
+	OldValue   string `json:"oldvalue"`
+	NewValue   string `json:"newvalue"`
 }
 
 type DeleteRequest struct {
-	CustomerId string `json:"customerid"`
+	CustomerId string `json:"customerid" bson:"customerid"`
+}
+type GetbyId struct {
+	Token string `json:"token" bson:"token"`
 }

@@ -185,3 +185,17 @@ func (p *CustomerService) DeleteCustomer(user *models.DeleteRequest) {
 		return
 	}
 }
+
+
+func(p *CustomerService)GetByCustomerId(id string)(*models.Customer,error){
+	filter := bson.D{{Key: "customerid", Value: id}}
+	var customer *models.Customer
+	res := p.ProfileCollection.FindOne(p.ctx, filter)
+	err := res.Decode(&customer)
+	if err!=nil{
+		return nil,err
+	}
+	return customer,nil
+
+
+}

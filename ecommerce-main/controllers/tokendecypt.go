@@ -1,4 +1,4 @@
-package main
+package controllers
 
 import (
 	"fmt"
@@ -6,7 +6,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-func extractCustomerID(jwtToken string, secretKey string) (string, error) {
+func ExtractCustomerID(jwtToken string, secretKey string) (string, error) {
+
 	// Parse the JWT token
 	token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
 		// Validate the signing method
@@ -32,17 +33,4 @@ func extractCustomerID(jwtToken string, secretKey string) (string, error) {
 	}
 
 	return "", fmt.Errorf("Invalid or expired JWT token")
-}
-
-func main() {
-	jwtToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcmlkIjoiMTAzIiwiZW1haWwiOiJhbGljZUBnbWFpbC5jb20iLCJleHAiOjE2OTM4OTg4NTN9.cHJGTNxYJDdT1SYo1tPA8q0TaOTJDTgXskHSa-sOTWs"
-	secretKey := "your-secret-key"
-
-	customerID, err := extractCustomerID(jwtToken, secretKey)
-
-	if err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Println("Customer ID:", customerID)
-	}
 }
