@@ -55,3 +55,9 @@ type DeleteRequest struct {
 type GetbyId struct {
 	Token string `json:"token" bson:"token"`
 }
+
+type SigninVerify struct {
+	Email                   string `json:"email" bson:"email"`
+	HashesAndSaltedPassword string `json:"hashesandsaltedpassword" bson:"hashedandsaltedpassword"`
+	CustomerId              string `json:"customerid" bson:"customerid"`
+}

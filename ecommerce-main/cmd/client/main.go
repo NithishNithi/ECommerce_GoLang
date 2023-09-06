@@ -13,6 +13,7 @@ import (
 	"github.com/kishorens18/ecommerce/constants"
 	"github.com/kishorens18/ecommerce/models"
 	pb "github.com/kishorens18/ecommerce/proto"
+	"github.com/kishorens18/ecommerce/services"
 	"google.golang.org/grpc"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -26,9 +27,9 @@ var (
 )
 
 type User struct {
-	Email      string `json:"email"`
-	Password   string `json:"hashedandsaltedpassword"`
-	CustomerId string `json:"customerid"`
+	Email      string `json:"email" bson :"email"` 
+	Password   string `json:"hashedandsaltedpassword" bson:"hashedandsaltedpassword"`
+	CustomerId string `json:"customerid" bson:"customerid"`
 }
 
 func main() {
@@ -65,6 +66,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 			return
 		}
+	
 		if isValidUser(user) {
 			token, err := createToken(user.Email, user.CustomerId)
 			if err != nil {
@@ -138,18 +140,27 @@ func main() {
 }
 
 func isValidUser(user User) bool {
-	// Simulated user validation (replace with your actual validation logic)
+	var result models.SigninVerify
 	mongoclient, _ := config.ConnectDataBase()
 	collection := mongoclient.Database("Ecommerce").Collection("CustomerProfile")
-	filter := bson.M{"email": user.Email, "hashedandsaltedpassword": user.Password, "customerid": user.CustomerId}
-	count, err := collection.CountDocuments(ctx, filter)
+	filter := bson.M{"customerid":user.CustomerId}
+	err := collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-
-		fmt.Println("ERROR")
+		return false // User not found or other error.
+	}
+	if result.Email != user.Email {
 		return false
 	}
-	return count > 0
+	// Verify the password. If it's correct, return true; otherwise, return false.
+	ans:=services.VerifyPassword(result.HashesAndSaltedPassword, user.Password) 
+		
+	if ans == false {
+		return true
+	}
+	
+	return false // Password is invalid.
 }
+
 
 func createToken(email, customerid string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

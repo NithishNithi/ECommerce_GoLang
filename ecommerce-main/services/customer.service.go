@@ -32,7 +32,7 @@ func HashPassword(password string) (string, error) {
 // VerifyPassword compares a hashed password with a plain password.
 func VerifyPassword(hashedPassword, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
-	return err == nil
+	return err != nil
 }
 
 // InitCustomerService initializes a new CustomerService instance.
@@ -70,7 +70,7 @@ func (p *CustomerService) UpdatePassword(user *models.UpdatePassword) (*models.C
 		return nil, err
 	}
 
-	if !VerifyPassword(customer.HashesAndSaltedPassword, user.OldPassword) {
+	if VerifyPassword(customer.HashesAndSaltedPassword, user.OldPassword) {
 		return nil, nil
 	}
 
