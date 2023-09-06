@@ -10,6 +10,7 @@ service CustomerService {
     rpc UpdatePassword(PasswordDetails) returns(CustomerResponse);
     rpc UpdateEmail (EmailDetails) returns (CustomerResponse);
     rpc UpdateCustomer(UpdateDetails)returns(CustomerResponse);
+    rpc DeleteCustomer(DeleteDetails) returns (empty) ;
 }
 
 message CustomerDetails {
@@ -64,8 +65,15 @@ message EmailDetails {
     string OldEmail = 2;
     string NewEmail = 3;
 }
+
 message UpdateDetails {
     string CustomerId =1;
     string Field = 2;
-    string Value = 3;
+    string OldValue = 3;
+    string NewValue=4; 
+
+    
+}
+message DeleteDetails {
+    string CustomerID =1;
 }

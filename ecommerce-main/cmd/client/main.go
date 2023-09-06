@@ -91,7 +91,7 @@ func main() {
 			return
 		}
 		updatedUser, err := client.UpdateCustomer(c.Request.Context(),&pb.UpdateDetails{CustomerId: user.CustomerId,
-		Field: user.Field, Value: user.Value})
+		Field: user.Field, OldValue: user.OldValue,NewValue: user.NewValue,})
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
@@ -99,6 +99,18 @@ func main() {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "User updated", "data": updatedUser})
+
+	})
+	r.POST("/deletecustomer", func(c *gin.Context) {
+		var user models.DeleteRequest
+
+		if err := c.ShouldBindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		client.DeleteCustomer(c.Request.Context(), &pb.DeleteDetails{CustomerID: user.CustomerId})
+
+		c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
 
 	})
 

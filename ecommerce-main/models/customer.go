@@ -47,10 +47,13 @@ type UpdateEmail struct {
 	NewEmail   string `json:"newemail" bson:"newemail"`
 }
 
-
 type UpdateRequest struct {
 	CustomerId string `json:"customerid"`
 	Field      string `json:"field"`
-	Value      string `json:"value"`
+	OldValue      string `json:"oldvalue"`
+	NewValue    string  `json:"newvalue"`
 }
 
+type DeleteRequest struct {
+	CustomerId string `json:"customerid"`
+}

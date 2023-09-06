@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/kishorens18/ecommerce/interfaces"
@@ -9,6 +10,7 @@ import (
 	ecommerce "github.com/kishorens18/ecommerce/proto"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -145,4 +147,70 @@ func (p *CustomerService) UpdateEmail(user *models.UpdateEmail) (*models.Custome
 		Customer_id: customer.CustomerId,
 	}
 	return &response, nil
+}
+
+func (p *CustomerService) UpdateCustomer(user *models.UpdateRequest) (*models.CustomerDBResponse, error) {
+	if user.Field == "country" || user.Field == "street1" || user.Field == "street2" || user.Field == "city" || user.Field == "state" || user.Field == "zip" {
+		filter := bson.D{
+			{Key: "customerid", Value: user.CustomerId},
+			{Key: "address." + user.Field, Value: user.OldValue}, // Match the original 'address.country' value
+		}
+
+		// Create an update operation to set the specific 'address.country' field to the new value
+		update := bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: "address.$." + user.Field, Value: user.NewValue},
+			}},
+		}
+
+		options := options.Update()
+
+		_, err := p.ProfileCollection.UpdateOne(p.ctx, filter, update, options)
+		if err != nil {
+			fmt.Printf("MongoDB error: %v\n", err)
+			return nil, err
+		}
+	} else {
+
+		filter := bson.D{{Key: "customerid", Value: user.CustomerId}}
+		update := bson.D{{Key: "$set", Value: bson.D{{Key: user.Field, Value: user.NewValue}}}}
+		options := options.Update()
+
+		_, err := p.ProfileCollection.UpdateOne(p.ctx, filter, update, options)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	filter := bson.D{{Key: "customerid", Value: user.CustomerId}}
+	// Fetch the updated user document
+	var updatedUser models.CustomerDBResponse
+	err := p.ProfileCollection.FindOne(p.ctx, filter).Decode(&updatedUser)
+	if err != nil {
+		fmt.Println("Error decoding document:", err)
+		return nil, err
+	}
+
+	return &updatedUser, nil
+
+}
+func (p *CustomerService) DeleteCustomer(user *models.DeleteRequest) {
+	// Check if the customer ID is provided
+	if user.CustomerId == "" {
+		return
+	}
+
+	// Create a filter to find the customer by ID
+	filter := bson.M{"customerid": user.CustomerId}
+
+	// Delete the customer document
+	result, err := p.ProfileCollection.DeleteOne(p.ctx, filter)
+	if err != nil {
+		return
+	}
+
+	// Check if a document was deleted
+	if result.DeletedCount == 0 {
+		return
+	}
 }

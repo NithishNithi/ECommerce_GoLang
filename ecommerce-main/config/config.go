@@ -20,7 +20,7 @@ import (
 var MongoClient *mongo.Client
 
 func ConnectDataBase() (*mongo.Client, error) {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 100*time.Second)
 	mongoConnection := options.Client().ApplyURI(constants.ConnectionString)
 	MongoClient, err := mongo.Connect(ctx, mongoConnection)
 	if err != nil {

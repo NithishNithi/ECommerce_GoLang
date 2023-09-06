@@ -125,7 +125,7 @@ func (s *RPCServer) UpdateCustomer(ctx context.Context, req *pro.UpdateDetails) 
 	}
 
 	// Validate the request fields
-	if req.CustomerId == "" || req.Field == "" || req.Value == "" {
+	if req.CustomerId == "" || req.Field == "" || req.OldValue == "" || req.NewValue == "" {
 		return nil, status.Error(codes.InvalidArgument, "Missing required fields")
 	}
 
@@ -133,8 +133,9 @@ func (s *RPCServer) UpdateCustomer(ctx context.Context, req *pro.UpdateDetails) 
 	if req != nil {
 		cus = models.UpdateRequest{
 			CustomerId: req.CustomerId,
-			Field:   req.Field,
-			Value:   req.Value,
+			Field:      req.Field,
+			OldValue:   req.OldValue,
+			NewValue:   req.NewValue,
 		}
 	}
 
@@ -146,8 +147,25 @@ func (s *RPCServer) UpdateCustomer(ctx context.Context, req *pro.UpdateDetails) 
 
 	// Create and return the response
 	responseCustomer := &pro.CustomerResponse{
-		Customer_ID: updatedUser.CustomerId,
+		Customer_ID: updatedUser.Customer_id,
 	}
 
 	return responseCustomer, nil
+}
+func (s *RPCServer) DeleteCustomer(ctx context.Context, req *pro.DeleteDetails) (*pro.Empty, error) {
+
+	var cuss models.DeleteRequest
+	if req != nil && req.CustomerID != "" {
+		cuss = models.DeleteRequest{
+			CustomerId: req.CustomerID,
+		}
+	} else {
+		// Handle the case where req or req.CustomerID is nil or empty
+		return nil, status.Error(codes.InvalidArgument, "Invalid Customer ID")
+	}
+
+	// Call the DeleteCustomer service function
+	CustomerService.DeleteCustomer(&cuss)
+
+	return &pro.Empty{}, nil
 }
