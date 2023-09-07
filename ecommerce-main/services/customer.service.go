@@ -20,9 +20,12 @@ type CustomerService struct {
 	ctx               context.Context
 }
 
+
+
+
 // HashPassword hashes a given password using bcrypt.
 func HashPassword(password string) (string, error) {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		return "", err
 	}
@@ -32,8 +35,13 @@ func HashPassword(password string) (string, error) {
 // VerifyPassword compares a hashed password with a plain password.
 func VerifyPassword(hashedPassword, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
-	return err != nil
+	
+	if err != nil {
+		return false
+	}
+	return true
 }
+
 
 // InitCustomerService initializes a new CustomerService instance.
 func InitCustomerService(collection, tokenCollection *mongo.Collection, ctx context.Context) interfaces.ICustomer {
@@ -42,7 +50,7 @@ func InitCustomerService(collection, tokenCollection *mongo.Collection, ctx cont
 
 // CreateCustomer creates a new customer and stores it in the database.
 func (p *CustomerService) CreateCustomer(user *models.Customer) (*models.CustomerDBResponse, error) {
-	user.HashesAndSaltedPassword, _ = HashPassword(user.HashesAndSaltedPassword)
+	user.Password, _ = HashPassword(user.Password)
 	res, err := p.ProfileCollection.InsertOne(p.ctx, &user)
 	if err != nil {
 		return nil, err
@@ -60,7 +68,7 @@ func (p *CustomerService) CreateCustomer(user *models.Customer) (*models.Custome
 // UpdatePassword updates the password for a customer.
 func (p *CustomerService) UpdatePassword(user *models.UpdatePassword) (*models.CustomerDBResponse, error) {
 	if user.OldPassword == user.NewPassword {
-		return nil, nil
+		return nil, fmt.Errorf("invalid password")
 	}
 
 	query := bson.M{"email": user.Email}
@@ -69,14 +77,16 @@ func (p *CustomerService) UpdatePassword(user *models.UpdatePassword) (*models.C
 	if err != nil {
 		return nil, err
 	}
-
-	if VerifyPassword(customer.HashesAndSaltedPassword, user.OldPassword) {
-		return nil, nil
-	}
+	res:=VerifyPassword(customer.Password, user.OldPassword) 
+		fmt.Println("errror in verifying")
+		
+		if !res {
+			return nil,fmt.Errorf("invalid oldpassword")
+		}
 
 	user.NewPassword, _ = HashPassword(user.NewPassword)
 	filter := bson.M{"email": user.Email}
-	update := bson.M{"$set": bson.M{"hashedandsaltedpassword": user.NewPassword}}
+	update := bson.M{"$set": bson.M{"password": user.NewPassword}}
 
 	_, err = p.ProfileCollection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
@@ -91,7 +101,7 @@ func (p *CustomerService) UpdatePassword(user *models.UpdatePassword) (*models.C
 
 // CustomerLogin performs customer login and returns the customer ID.
 func (p *CustomerService) CustomerLogin(email, password string) (*models.CustomerDBResponse, error) {
-	query := bson.M{"email": email, "hashesandsaltedpassword": password}
+	query := bson.M{"email": email, "password": password}
 	var customer models.Customer
 	err := p.ProfileCollection.FindOne(p.ctx, query).Decode(&customer)
 	if err != nil {
@@ -186,16 +196,14 @@ func (p *CustomerService) DeleteCustomer(user *models.DeleteRequest) {
 	}
 }
 
-
-func(p *CustomerService)GetByCustomerId(id string)(*models.Customer,error){
+func (p *CustomerService) GetByCustomerId(id string) (*models.Customer, error) {
 	filter := bson.D{{Key: "customerid", Value: id}}
 	var customer *models.Customer
 	res := p.ProfileCollection.FindOne(p.ctx, filter)
 	err := res.Decode(&customer)
-	if err!=nil{
-		return nil,err
+	if err != nil {
+		return nil, err
 	}
-	return customer,nil
-
+	return customer, nil
 
 }

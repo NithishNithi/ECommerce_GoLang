@@ -17,7 +17,7 @@ message CustomerDetails {
     string CustomerId = 1;
     string Firstname = 2;
     string Lastname = 3;
-    string HashesAndSaltedPassword = 4;
+    string Password = 4;
     string Email = 5;
     repeated Address Address=6;
      repeated ShippingAddress ShippingAddress=7;
@@ -40,7 +40,7 @@ message ShippingAddress {
 
 message CustomerLoginRequest {
     string Email = 1;
-    string HashesAndSaltedPassword = 2;
+    string Password = 2;
 }
 
 message  CustomerResponse {

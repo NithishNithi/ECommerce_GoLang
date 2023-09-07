@@ -27,9 +27,9 @@ var (
 )
 
 type User struct {
-	Email      string `json:"email" bson :"email"` 
-	Password   string `json:"hashedandsaltedpassword" bson:"hashedandsaltedpassword"`
-	CustomerId string `json:"customerid" bson:"customerid"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	CustomerId string `json:"customerid"`
 }
 
 func main() {
@@ -41,6 +41,9 @@ func main() {
 	defer conn.Close()
 
 	client := pb.NewCustomerServiceClient(conn)
+
+	// ----->
+
 	r.POST("/signup", func(c *gin.Context) {
 		var request pb.CustomerDetails
 
@@ -60,13 +63,14 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"value": response})
 	})
 
+	// ------->
+
 	r.POST("/signin", func(c *gin.Context) {
 		var user User
 		if err := c.ShouldBindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 			return
 		}
-	
 		if isValidUser(user) {
 			token, err := createToken(user.Email, user.CustomerId)
 			if err != nil {
@@ -100,7 +104,6 @@ func main() {
 	})
 	r.POST("/deletecustomer", func(c *gin.Context) {
 		var user models.DeleteRequest
-
 		if err := c.ShouldBindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -121,7 +124,8 @@ func main() {
 		c.JSON(http.StatusCreated, gin.H{"status": "success", "data": result})
 	})
 
-	r.POST("/resetpassword", func(c *gin.Context) {
+
+	r.POST("/updatepassword", func(c *gin.Context) {
 		var user models.UpdatePassword
 		if err := c.ShouldBindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
@@ -140,27 +144,26 @@ func main() {
 }
 
 func isValidUser(user User) bool {
-	var result models.SigninVerify
+	// Simulated user validation (replace with your actual validation logic)
 	mongoclient, _ := config.ConnectDataBase()
 	collection := mongoclient.Database("Ecommerce").Collection("CustomerProfile")
-	filter := bson.M{"customerid":user.CustomerId}
-	err := collection.FindOne(ctx, filter).Decode(&result)
+
+	query := bson.M{"customerid": user.CustomerId}
+	var customer models.Customer
+
+	err := collection.FindOne(ctx, query).Decode(&customer)
 	if err != nil {
-		return false // User not found or other error.
-	}
-	if result.Email != user.Email {
 		return false
 	}
-	// Verify the password. If it's correct, return true; otherwise, return false.
-	ans:=services.VerifyPassword(result.HashesAndSaltedPassword, user.Password) 
-		
-	if ans == false {
-		return true
-	}
-	
-	return false // Password is invalid.
-}
+	fmt.Println(customer.Password)
 
+	if customer.Email != user.Email {
+		return false
+	}
+	result := services.VerifyPassword(customer.Password, user.Password)
+
+	return result
+}
 
 func createToken(email, customerid string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

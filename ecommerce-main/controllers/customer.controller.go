@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"log"
 
@@ -51,7 +52,7 @@ func (s *RPCServer) CreateCustomer(ctx context.Context, req *pro.CustomerDetails
 		CustomerId:              req.CustomerId,
 		Firstname:               req.Firstname,
 		Lastname:                req.Lastname,
-		HashesAndSaltedPassword: req.HashesAndSaltedPassword,
+		Password: req.Password,
 		Email:                   req.Email,
 		Address:                 []models.Address{address},
 		ShippingAddress:         []models.ShippingAddress{shippingAddress},
@@ -93,6 +94,7 @@ func (s *RPCServer) UpdatePassword(ctx context.Context, req *pro.PasswordDetails
 	if err != nil {
 		return nil, err
 	} else {
+		fmt.Println(result.Customer_id)
 		responseCustomer := &pro.CustomerResponse{
 			Customer_ID: result.Customer_id,
 		}
