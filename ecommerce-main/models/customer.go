@@ -1,13 +1,13 @@
 package models
 
 type Customer struct {
-	CustomerId              string            `json:"customerid" bson:"customerid"`
-	Firstname               string            `json:"firstname" bson:"firstname"`
-	Lastname                string            `json:"lastname" bson:"lastname"`
-	Password string            `json:"password" bson:"password"`
-	Email                   string            `json:"email" bson:"email"`
-	Address                 []Address         `json:"address" bson:"address"`
-	ShippingAddress         []ShippingAddress `json:"shippingaddress" bson:"shippingaddress"`
+	CustomerId      string            `json:"customerid" bson:"customerid"`
+	Firstname       string            `json:"firstname" bson:"firstname"`
+	Lastname        string            `json:"lastname" bson:"lastname"`
+	Password        string            `json:"password" bson:"password"`
+	Email           string            `json:"email" bson:"email"`
+	Address         []Address         `json:"address" bson:"address"`
+	ShippingAddress []ShippingAddress `json:"shippingaddress" bson:"shippingaddress"`
 }
 
 type Address struct {
@@ -50,7 +50,7 @@ type UpdateRequest struct {
 }
 
 type DeleteRequest struct {
-	CustomerId string `json:"customerid" bson:"customerid"`
+	Token string `json:"token" bson:"token"`
 }
 type GetbyId struct {
 	Token string `json:"token" bson:"token"`

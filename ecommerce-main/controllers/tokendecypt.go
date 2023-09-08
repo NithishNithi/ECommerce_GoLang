@@ -12,7 +12,7 @@ func ExtractCustomerID(jwtToken string, secretKey string) (string, error) {
 	token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
 		// Validate the signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Invalid signing method")
+			return nil, fmt.Errorf("invalid signing method")
 		}
 		return []byte(secretKey), nil
 	})
@@ -32,5 +32,5 @@ func ExtractCustomerID(jwtToken string, secretKey string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("Invalid or expired JWT token")
+	return "", fmt.Errorf("invalid or expired JWT token")
 }

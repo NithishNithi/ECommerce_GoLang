@@ -6,7 +6,6 @@ import (
 
 	"log"
 
-	"github.com/gin-gonic/gin"
 	"github.com/kishorens18/ecommerce/constants"
 	"github.com/kishorens18/ecommerce/interfaces"
 	"github.com/kishorens18/ecommerce/models"
@@ -21,7 +20,7 @@ type RPCServer struct {
 }
 
 var (
-	ctx             gin.Context
+	// ctx             gin.Context
 	CustomerService interfaces.ICustomer
 )
 
@@ -49,13 +48,13 @@ func (s *RPCServer) CreateCustomer(ctx context.Context, req *pro.CustomerDetails
 	}
 
 	dbCustomer := models.Customer{
-		CustomerId:              req.CustomerId,
-		Firstname:               req.Firstname,
-		Lastname:                req.Lastname,
-		Password: req.Password,
-		Email:                   req.Email,
-		Address:                 []models.Address{address},
-		ShippingAddress:         []models.ShippingAddress{shippingAddress},
+		CustomerId:      req.CustomerId,
+		Firstname:       req.Firstname,
+		Lastname:        req.Lastname,
+		Password:        req.Password,
+		Email:           req.Email,
+		Address:         []models.Address{address},
+		ShippingAddress: []models.ShippingAddress{shippingAddress},
 	}
 	result, err := CustomerService.CreateCustomer(&dbCustomer)
 	if err != nil {
@@ -103,54 +102,56 @@ func (s *RPCServer) UpdatePassword(ctx context.Context, req *pro.PasswordDetails
 }
 
 func (s *RPCServer) UpdateCustomer(ctx context.Context, req *pro.UpdateDetails) (*pro.CustomerResponse, error) {
-	// Check if the request is nil
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "Request is nil")
-	}
+    // Check if the request is nil
 
-	// Validate the request fields
-	if req.CustomerId == "" || req.Field == "" || req.OldValue == "" || req.NewValue == "" {
-		return nil, status.Error(codes.InvalidArgument, "Missing required fields")
-	}
+    if req == nil {
+        return nil, status.Error(codes.InvalidArgument, "Request is nil")
+    }
 
-	var cus models.UpdateRequest
-	if req != nil {
-		cus = models.UpdateRequest{
-			CustomerId: req.CustomerId,
-			Field:      req.Field,
-			OldValue:   req.OldValue,
-			NewValue:   req.NewValue,
-		}
-	}
+    // Validate the request fields
 
-	// Call the UpdateCustomer service function
-	updatedUser, err := CustomerService.UpdateCustomer(&cus)
-	if err != nil {
-		return nil, status.Error(codes.Internal, "Failed to update user")
-	}
+    if req.CustomerId == "" || req.Field == "" || req.OldValue == "" || req.NewValue == "" {
+        fmt.Println("error fpound")
+        return nil, status.Error(codes.InvalidArgument, "Missing required fields")
+    }
 
-	// Create and return the response
-	responseCustomer := &pro.CustomerResponse{
-		Customer_ID: updatedUser.Customer_id,
-	}
+    var cus models.UpdateRequest
+    if req != nil {
+        cus = models.UpdateRequest{
+            CustomerId: req.CustomerId,
+            Field:      req.Field,
+            OldValue:   req.OldValue,
+            NewValue:   req.NewValue,
+        }
+    }
 
-	return responseCustomer, nil
+    // Call the UpdateCustomer service function
+    updatedUser, err := CustomerService.UpdateCustomer(&cus)
+    if err != nil {
+        fmt.Println("error from service", err)
+        return nil, status.Error(codes.Internal, "Failed to update user")
+    }
+
+    // Create and return the response
+    responseCustomer := &pro.CustomerResponse{
+        Customer_ID: updatedUser.Customer_id,
+    }
+
+    return responseCustomer, err
 }
+
 func (s *RPCServer) DeleteCustomer(ctx context.Context, req *pro.DeleteDetails) (*pro.Empty, error) {
+	t1 := req.Token
+	customerID, err := ExtractCustomerID(t1, constants.SecretKey)
 
-	var cuss models.DeleteRequest
-	if req != nil && req.CustomerID != "" {
-		cuss = models.DeleteRequest{
-			CustomerId: req.CustomerID,
-		}
-	} else {
-		// Handle the case where req or req.CustomerID is nil or empty
-		return nil, status.Error(codes.InvalidArgument, "Invalid Customer ID")
+	if err != nil {
+		return nil, err // Return the error from the gRPC function
 	}
-
-	// Call the DeleteCustomer service function
-	CustomerService.DeleteCustomer(&cuss)
-	return &pro.Empty{}, nil
+	err1 := CustomerService.DeleteCustomer(customerID)
+	if err1 != nil {
+		return nil, err1 // Return the error from the gRPC function
+	}
+	return &pro.Empty{}, nil // Return a valid response
 }
 
 func (s *RPCServer) GetByCustomerId(ctx context.Context, req *pro.GetbyId) (*pro.CustomerDetails, error) {

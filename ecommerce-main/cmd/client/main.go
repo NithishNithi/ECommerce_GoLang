@@ -11,19 +11,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/kishorens18/ecommerce/config"
 	"github.com/kishorens18/ecommerce/constants"
+	"github.com/kishorens18/ecommerce/controllers"
 	"github.com/kishorens18/ecommerce/models"
 	pb "github.com/kishorens18/ecommerce/proto"
 	"github.com/kishorens18/ecommerce/services"
 	"google.golang.org/grpc"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var (
-	mongoclient *mongo.Client
-	ctx         context.Context
-	server      *gin.Engine
+	// mongoclient *mongo.Client
+	ctx context.Context
+	// server *gin.Engine
 )
 
 type User struct {
@@ -77,7 +77,7 @@ func main() {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Token creation failed"})
 				return
 			}
-			response1, err := client.CreateTokens(c.Request.Context(), &pb.Token{Email: user.Email, Token: token, Customerid: user.CustomerId})
+			response1, _ := client.CreateTokens(c.Request.Context(), &pb.Token{Email: user.Email, Token: token, Customerid: user.CustomerId})
 			fmt.Println(response1)
 			c.JSON(http.StatusOK, gin.H{"token": token})
 		} else {
@@ -86,11 +86,14 @@ func main() {
 	})
 
 	r.POST("/updatecustomer", func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
 		var user models.UpdateRequest
 		if err := c.ShouldBindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		customerid,_:=controllers.ExtractCustomerID(token,constants.SecretKey)
+		user.CustomerId = customerid
 		updatedUser, err := client.UpdateCustomer(c.Request.Context(), &pb.UpdateDetails{CustomerId: user.CustomerId,
 			Field: user.Field, OldValue: user.OldValue, NewValue: user.NewValue})
 
@@ -102,15 +105,15 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message": "User updated", "data": updatedUser})
 
 	})
-	r.POST("/deletecustomer", func(c *gin.Context) {
-		var user models.DeleteRequest
-		if err := c.ShouldBindJSON(&user); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	r.GET("/deletecustomer", func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
+		_, err := client.DeleteCustomer(c.Request.Context(), &pb.DeleteDetails{Token: token})
+		if err == nil {
+			c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
 			return
 		}
-		client.DeleteCustomer(c.Request.Context(), &pb.DeleteDetails{CustomerID: user.CustomerId})
-
-		c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
+		c.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		c.JSON(http.StatusOK, gin.H{"message": "User not deleted"})
 
 	})
 
@@ -123,7 +126,6 @@ func main() {
 		}
 		c.JSON(http.StatusCreated, gin.H{"status": "success", "data": result})
 	})
-
 
 	r.POST("/updatepassword", func(c *gin.Context) {
 		var user models.UpdatePassword

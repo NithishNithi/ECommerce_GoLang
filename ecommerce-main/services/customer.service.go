@@ -20,9 +20,6 @@ type CustomerService struct {
 	ctx               context.Context
 }
 
-
-
-
 // HashPassword hashes a given password using bcrypt.
 func HashPassword(password string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
@@ -35,13 +32,12 @@ func HashPassword(password string) (string, error) {
 // VerifyPassword compares a hashed password with a plain password.
 func VerifyPassword(hashedPassword, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
-	
+
 	if err != nil {
 		return false
 	}
 	return true
 }
-
 
 // InitCustomerService initializes a new CustomerService instance.
 func InitCustomerService(collection, tokenCollection *mongo.Collection, ctx context.Context) interfaces.ICustomer {
@@ -77,12 +73,12 @@ func (p *CustomerService) UpdatePassword(user *models.UpdatePassword) (*models.C
 	if err != nil {
 		return nil, err
 	}
-	res:=VerifyPassword(customer.Password, user.OldPassword) 
-		fmt.Println("errror in verifying")
-		
-		if !res {
-			return nil,fmt.Errorf("invalid oldpassword")
-		}
+	res := VerifyPassword(customer.Password, user.OldPassword)
+	fmt.Println("errror in verifying")
+
+	if !res {
+		return nil, fmt.Errorf("invalid oldpassword")
+	}
 
 	user.NewPassword, _ = HashPassword(user.NewPassword)
 	filter := bson.M{"email": user.Email}
@@ -131,69 +127,91 @@ func (p *CustomerService) CreateTokens(user *models.Token) (*ecommerce.Empty, er
 }
 
 func (p *CustomerService) UpdateCustomer(user *models.UpdateRequest) (*models.CustomerDBResponse, error) {
+	var updatedUser models.CustomerDBResponse
 	if user.Field == "country" || user.Field == "street1" || user.Field == "street2" || user.Field == "city" || user.Field == "state" || user.Field == "zip" {
+
 		filter := bson.D{
 			{Key: "customerid", Value: user.CustomerId},
-			{Key: "address." + user.Field, Value: user.OldValue}, // Match the original 'address.country' value
+			{Key: "address." + user.Field, Value: user.OldValue},
 		}
-
-		// Create an update operation to set the specific 'address.country' field to the new value
 		update := bson.D{
 			{Key: "$set", Value: bson.D{
 				{Key: "address.$." + user.Field, Value: user.NewValue},
 			}},
 		}
-
 		options := options.Update()
 
-		_, err := p.ProfileCollection.UpdateOne(p.ctx, filter, update, options)
+		result, err := p.ProfileCollection.UpdateOne(p.ctx, filter, update, options)
 		if err != nil {
-			fmt.Printf("MongoDB error: %v\n", err)
+			fmt.Println("error while updating")
 			return nil, err
 		}
+
+		if result.MatchedCount == 0 {
+			// No documents matched the filter criteria, so return an error
+			return nil, mongo.ErrNoDocuments
+		}
+
+		filter3 := bson.D{{Key: "customerid", Value: user.CustomerId}}
+		// Fetch the updated user document
+
+		err2 := p.ProfileCollection.FindOne(p.ctx, filter3).Decode(&updatedUser)
+
+		if err2 != nil {
+			fmt.Println("Error decoding document:", err2)
+			return nil, err2
+		}
+		return &updatedUser, nil
+
 	} else {
+		filter2 := bson.D{
+			{Key: "customerid", Value: user.CustomerId},
+			{Key: user.Field, Value: user.OldValue},
+		}
+		update2 := bson.D{
+			{Key: "$set", Value: bson.D{
+				{Key: user.Field, Value: user.NewValue},
+			}},
+		}
+		options2 := options.Update()
+
+		result, err := p.ProfileCollection.UpdateOne(p.ctx, filter2, update2, options2)
+		if err != nil {
+			fmt.Println("error while updating")
+			return nil, err
+		}
+
+		if result.MatchedCount == 0 {
+			// No documents matched the filter criteria, so return an error
+			return nil, mongo.ErrNoDocuments
+		}
 
 		filter := bson.D{{Key: "customerid", Value: user.CustomerId}}
-		update := bson.D{{Key: "$set", Value: bson.D{{Key: user.Field, Value: user.NewValue}}}}
-		options := options.Update()
+		// Fetch the updated user document
 
-		_, err := p.ProfileCollection.UpdateOne(p.ctx, filter, update, options)
-		if err != nil {
-			return nil, err
+		err2 := p.ProfileCollection.FindOne(p.ctx, filter).Decode(&updatedUser)
+		if err2 != nil {
+			fmt.Println("Error decoding document:", err2)
+			return nil, err2
 		}
+		return &updatedUser, nil
 	}
-
-	filter := bson.D{{Key: "customerid", Value: user.CustomerId}}
-	// Fetch the updated user document
-	var updatedUser models.CustomerDBResponse
-	err := p.ProfileCollection.FindOne(p.ctx, filter).Decode(&updatedUser)
-	if err != nil {
-		fmt.Println("Error decoding document:", err)
-		return nil, err
-	}
-
 	return &updatedUser, nil
 
 }
-func (p *CustomerService) DeleteCustomer(user *models.DeleteRequest) {
-	// Check if the customer ID is provided
-	if user.CustomerId == "" {
-		return
+func (p *CustomerService) DeleteCustomer(id string) error {
+	if id == "" {
+		return fmt.Errorf("error: customer ID is required")
 	}
 
-	// Create a filter to find the customer by ID
-	filter := bson.M{"customerid": user.CustomerId}
-
+	filter := bson.M{"customerid": id}
 	// Delete the customer document
-	result, err := p.ProfileCollection.DeleteOne(p.ctx, filter)
+	_, err := p.ProfileCollection.DeleteOne(p.ctx, filter)
 	if err != nil {
-		return
+		fmt.Println("not deleted")
+		return fmt.Errorf("error: customer not deleted")
 	}
-
-	// Check if a document was deleted
-	if result.DeletedCount == 0 {
-		return
-	}
+	return nil
 }
 
 func (p *CustomerService) GetByCustomerId(id string) (*models.Customer, error) {

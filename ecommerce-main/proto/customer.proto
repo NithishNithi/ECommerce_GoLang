@@ -71,10 +71,10 @@ message UpdateDetails {
     
 }
 message DeleteDetails {
-    string CustomerID =1;
+    string Token =1;
 }
 
 message GetbyId {
-    string token =1;
+    string Token =1;
 }
 
