@@ -83,7 +83,7 @@ func (s *RPCServer) UpdatePassword(ctx context.Context, req *pro.PasswordDetails
 	var pass models.UpdatePassword
 	if req != nil {
 		pass = models.UpdatePassword{
-			Email:       req.Email,
+			CustomerId:       req.CustomerId,
 			OldPassword: req.OldPassword,
 			NewPassword: req.NewPassword,
 		}

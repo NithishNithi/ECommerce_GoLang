@@ -56,7 +56,7 @@ message Token {
     string Customerid =3 ;
 }
 message PasswordDetails {
-    string Email =1;
+    string CustomerId =1;
     string OldPassword =2;
     string NewPassword =3;
 }

@@ -37,7 +37,7 @@ type Token struct {
 }
 
 type UpdatePassword struct {
-	Email       string `json:"email" bson:"email"`
+	CustomerId string `json:"customerid" bson:"customerid"`
 	OldPassword string `json:"oldpassword" bson:"oldpassword"`
 	NewPassword string `json:"newpassword" bson:"newpassword"`
 }
@@ -52,6 +52,11 @@ type UpdateRequest struct {
 type DeleteRequest struct {
 	Token string `json:"token" bson:"token"`
 }
+
 type GetbyId struct {
 	Token string `json:"token" bson:"token"`
+}
+
+type TokenResponse struct {
+	Response string `json:"response" bson:"response"`
 }

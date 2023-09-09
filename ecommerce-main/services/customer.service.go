@@ -7,11 +7,9 @@ import (
 
 	"github.com/kishorens18/ecommerce/interfaces"
 	"github.com/kishorens18/ecommerce/models"
-	ecommerce "github.com/kishorens18/ecommerce/proto"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type CustomerService struct {
@@ -21,23 +19,6 @@ type CustomerService struct {
 }
 
 // HashPassword hashes a given password using bcrypt.
-func HashPassword(password string) (string, error) {
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashed), nil
-}
-
-// VerifyPassword compares a hashed password with a plain password.
-func VerifyPassword(hashedPassword, plainPassword string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
-
-	if err != nil {
-		return false
-	}
-	return true
-}
 
 // InitCustomerService initializes a new CustomerService instance.
 func InitCustomerService(collection, tokenCollection *mongo.Collection, ctx context.Context) interfaces.ICustomer {
@@ -67,7 +48,7 @@ func (p *CustomerService) UpdatePassword(user *models.UpdatePassword) (*models.C
 		return nil, fmt.Errorf("invalid password")
 	}
 
-	query := bson.M{"email": user.Email}
+	query := bson.M{"customerid": user.CustomerId}
 	var customer models.Customer
 	err := p.ProfileCollection.FindOne(p.ctx, query).Decode(&customer)
 	if err != nil {
@@ -81,7 +62,7 @@ func (p *CustomerService) UpdatePassword(user *models.UpdatePassword) (*models.C
 	}
 
 	user.NewPassword, _ = HashPassword(user.NewPassword)
-	filter := bson.M{"email": user.Email}
+	filter := bson.M{"customerid": user.CustomerId}
 	update := bson.M{"$set": bson.M{"password": user.NewPassword}}
 
 	_, err = p.ProfileCollection.UpdateOne(context.Background(), filter, update)
@@ -111,7 +92,7 @@ func (p *CustomerService) CustomerLogin(email, password string) (*models.Custome
 }
 
 // CreateTokens creates tokens for a user.
-func (p *CustomerService) CreateTokens(user *models.Token) (*ecommerce.Empty, error) {
+func (p *CustomerService) CreateTokens(user *models.Token) (*models.TokenResponse, error) {
 	res, err := p.tokenCollection.InsertOne(p.ctx, &user)
 	if err != nil {
 		return nil, err
